@@ -31,7 +31,9 @@ class MCControl:
             float: The epsilon value for the given state
         """
         # Get the epsilon value for the given state
-        return self.n_0 / (self.n_0 + self.n_state.get(state))
+        return self.n_0 / (
+            self.n_0 + (self.n_state[state] if state in self.n_state else 0)
+        )
 
     def get_alpha(self, state: GameState, action: str) -> float:
         """
@@ -45,7 +47,11 @@ class MCControl:
             float: The alpha value for the given state-action pair
         """
         # Get the alpha value for the given state-action pair
-        return 1 / self.n_state_action.get((state, action))
+        return (
+            1 / self.n_state_action[(state, action)]
+            if (state, action) in self.n_state_action
+            else 1
+        )
 
     def get_q_value(self, state: GameState, action: str) -> float:
         """
@@ -59,11 +65,7 @@ class MCControl:
             float: The Q-value for the given state-action pair
         """
         # Get the Q-value for the given state-action pair
-        return (
-            self.q_values.get((state, action))
-            if (state, action) in self.q_values
-            else 0
-        )
+        return self.q_values[(state, action)] if (state, action) in self.q_values else 0
 
     def get_e_greedy_action(self, state: GameState) -> str:
         """
@@ -101,9 +103,8 @@ class MCControl:
         episode = []
         while not game.is_finished:
             state = game.get_state()
-            epsilon = self.get_epsilon(state)
-            action = self.get_e_greedy_action(state, epsilon)
-            reward = game.step(state, action)
+            action = self.get_e_greedy_action(state)
+            _, reward = game.step(state, action)
             episode.append((state, action, reward))
         return episode
 
@@ -124,15 +125,21 @@ class MCControl:
         for i in range(len(episode) - 1, -1, -1):
             state, action, reward = episode[i]
             G_t += reward
-            self.n_state[state] += 1
-            self.n_state_action[(state, action)] += 1
+            self.n_state[state] = (
+                self.n_state[state] + 1 if state in self.n_state else 1
+            )
+            self.n_state_action[(state, action)] = (
+                self.n_state_action[(state, action)] + 1
+                if (state, action) in self.n_state_action
+                else 1
+            )
             alpha = self.get_alpha(state, action)
             q = self.get_q_value(state, action)
             self.q_values[(state, action)] = q + alpha * (G_t - q)
             max_diff = max(max_diff, abs(q - self.q_values[(state, action)]))
         return max_diff < 1e-6
 
-    def train(self, n_episodes=1000) -> bool:
+    def train(self, n_episodes=1000) -> None:
         """
         Train the agent using Monte Carlo control
 
@@ -140,25 +147,19 @@ class MCControl:
             n_episodes (int): The number of episodes to train the agent for
 
         Returns:
-            bool: True if the Q-values have converged, False otherwise
+            None
         """
         converged = False
         # Train the agent
-        for _ in range(n_episodes):
+        for i in range(n_episodes):
+            print(f"Training episode {i + 1}/{n_episodes}")
             episode = self.sample_episode()
-            if self.update_q_values(episode):
-                converged = True
-                break
-        return converged
+            self.update_q_values(episode):
 
 
 def main():
     mc_control = MCControl()
-    converged = mc_control.train()
-    if converged:
-        print("Q-values have converged!")
-    else:
-        print("Q-values have not converged!")
+    mc_control.train(100000)
 
 
 if __name__ == "__main__":
