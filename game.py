@@ -8,6 +8,19 @@ import time
 
 
 class Card:
+    """
+    A class to represent a card in the game
+
+    Attributes:
+        value (int): The value of the card
+        color (str): The color of the card
+
+    Methods:
+        __repr__: Return the string representation of the card
+        __hash__: Return the hash value of the card
+        __eq__: Check if the card is equal to another card
+    """
+
     def __init__(self, value: int, color: str):
         self.value = value
         self.color = color
@@ -27,6 +40,19 @@ class Card:
 
 
 class GameState:
+    """
+    A class to represent the state of the game
+
+    Attributes:
+        dealer_card (Card): The dealer's card
+        player_sum (int): The sum of the player's cards
+
+    Methods:
+        __repr__: Return the string representation of the game state
+        __hash__: Return the hash value of the game state
+        __eq__: Check if the game state is equal to another game state
+    """
+
     def __init__(self, dealer_card: Card, player_sum: int):
         self.dealer_card = dealer_card
         self.player_sum = player_sum

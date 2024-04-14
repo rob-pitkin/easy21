@@ -166,29 +166,14 @@ class MCControl:
             episode, cumulative_reward = self.sample_episode()
             rewards.append(cumulative_reward)
             self.update_q_values(episode)
-        # self.plot_rewards(rewards)
-        self.plot_optimal_value_function()
+        self.plot_optimal_value_function(n_episodes)
 
-    def plot_rewards(self, rewards: List[int]) -> None:
-        """
-        Plot the rewards
-
-        Args:
-            rewards (List[int]): The rewards to plot
-
-        Returns:
-            None
-        """
-        # Plot the rewards
-        plt.plot(rewards)
-        plt.xlabel("Episode")
-        plt.ylabel("Cumulative Reward")
-        plt.title("Cumulative Reward vs Episode")
-        plt.show()
-
-    def plot_optimal_value_function(self) -> None:
+    def plot_optimal_value_function(self, episodes: int) -> None:
         """
         Plot the optimal value function
+
+        Args:
+            episodes (int): The number of episodes ran
 
         Returns:
             None
@@ -220,7 +205,11 @@ class MCControl:
         ax.set_xlabel("Player Sum")
         ax.set_ylabel("Dealer Showing")
         ax.set_zlabel("Value Function")
-        ax.set_title("3D Surface Plot of Value Function in Easy21")
+        ax.set_title(
+            "3D Surface Plot of MC-Control Value Function in Easy21 after {} episodes".format(
+                1000000
+            )
+        )
 
         plt.show()
 
