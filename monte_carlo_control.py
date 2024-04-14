@@ -5,6 +5,7 @@
 from game import Easy21, GameState
 from typing import Dict, List
 import random
+import matplotlib.pyplot as plt
 
 
 class MCControl:
@@ -101,14 +102,16 @@ class MCControl:
         # Sample an episode
         game = Easy21()
         episode = []
+        cumulative_reward = 0
         while not game.is_finished:
             state = game.get_state()
             action = self.get_e_greedy_action(state)
             _, reward = game.step(state, action)
+            cumulative_reward += reward
             episode.append((state, action, reward))
-        return episode
+        return episode, cumulative_reward
 
-    def update_q_values(self, episode: List[tuple[GameState, str, int]]) -> bool:
+    def update_q_values(self, episode: List[tuple[GameState, str, int]]) -> None:
         """
         Update the Q-values for the episode
 
@@ -116,11 +119,10 @@ class MCControl:
             episode (List[tuple[GameState, str, int]]): The episode to update the Q-values for
 
         Returns:
-            bool: True if the Q-values have converged, False otherwise
+            None
         """
         # Update the Q-values for the episode
         G_t = 0
-        max_diff = 0
         # Iterate through the episode in reverse
         for i in range(len(episode) - 1, -1, -1):
             state, action, reward = episode[i]
@@ -136,8 +138,6 @@ class MCControl:
             alpha = self.get_alpha(state, action)
             q = self.get_q_value(state, action)
             self.q_values[(state, action)] = q + alpha * (G_t - q)
-            max_diff = max(max_diff, abs(q - self.q_values[(state, action)]))
-        return max_diff < 1e-6
 
     def train(self, n_episodes=1000) -> None:
         """
@@ -149,12 +149,31 @@ class MCControl:
         Returns:
             None
         """
-        converged = False
+        rewards = []
         # Train the agent
         for i in range(n_episodes):
             print(f"Training episode {i + 1}/{n_episodes}")
-            episode = self.sample_episode()
-            self.update_q_values(episode):
+            episode, cumulative_reward = self.sample_episode()
+            rewards.append(cumulative_reward)
+            self.update_q_values(episode)
+        self.plot_rewards(rewards)
+
+    def plot_rewards(self, rewards: List[int]) -> None:
+        """
+        Plot the rewards
+
+        Args:
+            rewards (List[int]): The rewards to plot
+
+        Returns:
+            None
+        """
+        # Plot the rewards
+        plt.plot(rewards)
+        plt.xlabel("Episode")
+        plt.ylabel("Cumulative Reward")
+        plt.title("Cumulative Reward vs Episode")
+        plt.show()
 
 
 def main():
