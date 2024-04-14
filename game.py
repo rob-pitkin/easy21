@@ -27,6 +27,7 @@ class Easy21:
         random.seed(time.time())
         self.dealer_cards: List[Card] = [self.draw_first_card()]
         self.player_cards: List[Card] = [self.draw_first_card()]
+        self.is_finished = False
 
     def draw_card(self) -> Card:
         # Draw a number from the deck (1-10) and assign it a color
@@ -51,6 +52,7 @@ class Easy21:
         return total
     
     def decide_winner(self) -> int:
+        self.is_finished = True
         # If the player's sum is greater than 21, the player loses
         player_sum = self.get_sum(self.player_cards)
         if player_sum > 21:
@@ -82,5 +84,6 @@ class Easy21:
             player_sum = self.get_sum(self.player_cards)
             # If the player's sum is greater than 21, the player loses
             if player_sum > 21:
+                self.is_finished = True
                 return (dealer_card, player_sum), -1
             return (dealer_card, player_sum), 0
