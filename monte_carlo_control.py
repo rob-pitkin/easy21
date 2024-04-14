@@ -2,23 +2,43 @@
 # Date: 4/14/2024
 # Description: This file contains the Monte Carlo control logic for the game.
 
-from game import Easy21, GameState
+from game import Easy21, GameState, Card
 from typing import Dict, List
 import random
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 
 class MCControl:
     def __init__(self, n_0=100):
+        initial_q_values = {}
+        for dealer_card in range(1, 11):
+            for player_sum in range(1, 22):
+                for action in ["hit", "stick"]:
+                    initial_q_values[
+                        (GameState(Card(dealer_card, "black"), player_sum), action)
+                    ] = 0
         self.q_values: Dict[tuple[GameState, str], float] = (
-            {}
-        )  # State-action value function
+            initial_q_values  # State-action value function
+        )
+        initial_n_state = {}
+        for dealer_card in range(1, 11):
+            for player_sum in range(1, 22):
+                initial_n_state[GameState(Card(dealer_card, "black"), player_sum)] = 0
         self.n_state: Dict[GameState, int] = (
-            {}
-        )  # Number of times a state has been visited
+            initial_n_state  # Number of times a state has been visited
+        )
+        initial_n_state_action = {}
+        for dealer_card in range(1, 11):
+            for player_sum in range(1, 22):
+                for action in ["hit", "stick"]:
+                    initial_n_state_action[
+                        (GameState(Card(dealer_card, "black"), player_sum), action)
+                    ] = 0
         self.n_state_action: Dict[tuple[GameState, str], int] = (
-            {}
-        )  # Number of times a state-action pair has been visited
+            initial_n_state_action  # Number of times a state-action pair has been visited
+        )
         self.n_0 = n_0  # Epsilon constant for epsilon-greedy policy
 
     def get_epsilon(self, state: GameState) -> float:
@@ -32,9 +52,7 @@ class MCControl:
             float: The epsilon value for the given state
         """
         # Get the epsilon value for the given state
-        return self.n_0 / (
-            self.n_0 + (self.n_state[state] if state in self.n_state else 0)
-        )
+        return self.n_0 / (self.n_0 + self.n_state[state])
 
     def get_alpha(self, state: GameState, action: str) -> float:
         """
@@ -48,11 +66,7 @@ class MCControl:
             float: The alpha value for the given state-action pair
         """
         # Get the alpha value for the given state-action pair
-        return (
-            1 / self.n_state_action[(state, action)]
-            if (state, action) in self.n_state_action
-            else 1
-        )
+        return 1 / self.n_state_action[(state, action)]
 
     def get_q_value(self, state: GameState, action: str) -> float:
         """
@@ -66,7 +80,7 @@ class MCControl:
             float: The Q-value for the given state-action pair
         """
         # Get the Q-value for the given state-action pair
-        return self.q_values[(state, action)] if (state, action) in self.q_values else 0
+        return self.q_values[(state, action)]
 
     def get_e_greedy_action(self, state: GameState) -> str:
         """
@@ -127,13 +141,9 @@ class MCControl:
         for i in range(len(episode) - 1, -1, -1):
             state, action, reward = episode[i]
             G_t += reward
-            self.n_state[state] = (
-                self.n_state[state] + 1 if state in self.n_state else 1
-            )
+            self.n_state[state] = self.n_state[state]
             self.n_state_action[(state, action)] = (
                 self.n_state_action[(state, action)] + 1
-                if (state, action) in self.n_state_action
-                else 1
             )
             alpha = self.get_alpha(state, action)
             q = self.get_q_value(state, action)
@@ -156,7 +166,8 @@ class MCControl:
             episode, cumulative_reward = self.sample_episode()
             rewards.append(cumulative_reward)
             self.update_q_values(episode)
-        self.plot_rewards(rewards)
+        # self.plot_rewards(rewards)
+        self.plot_optimal_value_function()
 
     def plot_rewards(self, rewards: List[int]) -> None:
         """
@@ -175,10 +186,48 @@ class MCControl:
         plt.title("Cumulative Reward vs Episode")
         plt.show()
 
+    def plot_optimal_value_function(self) -> None:
+        """
+        Plot the optimal value function
+
+        Returns:
+            None
+        """
+        # Plot the optimal value function for black
+        player_sum = np.arange(1, 22)
+        dealer_showing = np.arange(1, 11)
+        value_function = np.zeros((10, 21))
+        for i in range(10):
+            for j in range(21):
+                state = GameState(Card(dealer_showing[i], "black"), player_sum[j])
+                value_function[i, j] = max(
+                    self.get_q_value(state, "hit"), self.get_q_value(state, "stick")
+                )
+
+        # Create 2D grids from player_sum and dealer_showing
+        player_sum_grid, dealer_showing_grid = np.meshgrid(player_sum, dealer_showing)
+
+        # Create a 3D plot
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+
+        # Plot the surface
+        ax.plot_surface(
+            player_sum_grid, dealer_showing_grid, value_function, cmap="viridis"
+        )
+
+        # Set labels and title
+        ax.set_xlabel("Player Sum")
+        ax.set_ylabel("Dealer Showing")
+        ax.set_zlabel("Value Function")
+        ax.set_title("3D Surface Plot of Value Function in Easy21")
+
+        plt.show()
+
 
 def main():
     mc_control = MCControl()
-    mc_control.train(100000)
+    mc_control.train(1000000)
 
 
 if __name__ == "__main__":

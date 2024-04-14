@@ -8,12 +8,22 @@ import time
 
 
 class Card:
-    def __init__(self, value: str, color: str):
+    def __init__(self, value: int, color: str):
         self.value = value
         self.color = color
 
     def __repr__(self) -> str:
         return f"{self.color} {self.value}"
+
+    def __hash__(self) -> int:
+        if self.color == "red":
+            return hash(-self.value)
+        return hash(self.value)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Card):
+            return False
+        return self.value == other.value and self.color == other.color
 
 
 class GameState:
@@ -23,6 +33,17 @@ class GameState:
 
     def __repr__(self) -> str:
         return f"Dealer: {self.dealer_card}, Player: {self.player_sum}"
+
+    def __hash__(self) -> int:
+        return hash((self.dealer_card, self.player_sum))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, GameState):
+            return False
+        return (
+            self.dealer_card == other.dealer_card
+            and self.player_sum == other.player_sum
+        )
 
 
 class Easy21:
@@ -42,7 +63,7 @@ class Easy21:
         # Draw a number from the deck (1-10) and assign it a color
         num = random.randint(1, 10)
         color = "red" if random.random() < 1 / 3 else "black"
-        return Card(str(num), color)
+        return Card(num, color)
 
     def draw_first_card(self) -> Card:
         """
@@ -54,7 +75,7 @@ class Easy21:
         # Draw the first card for the player or dealer
         num = random.randint(1, 10)
         color = "black"
-        return Card(str(num), color)
+        return Card(num, color)
 
     def get_state(self) -> GameState:
         """
@@ -121,7 +142,6 @@ class Easy21:
         Returns:
             tuple[GameState, int]: The new state of the game and the reward for the action taken
         """
-        print(f"Current state: {state}")
         dealer_card, player_sum = state.dealer_card, state.player_sum
         # If the player sticks, the dealer draws until their sum is greater than 17
         if action == "stick":
@@ -133,7 +153,7 @@ class Easy21:
             self.player_cards.append(self.draw_card())
             player_sum = self.get_sum(self.player_cards)
             # If the player's sum is greater than 21, the player loses
-            if player_sum > 21:
+            if player_sum > 21 or player_sum < 1:
                 self.is_finished = True
                 return (dealer_card, player_sum), -1
             return (dealer_card, player_sum), 0
