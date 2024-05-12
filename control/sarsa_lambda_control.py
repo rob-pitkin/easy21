@@ -166,9 +166,10 @@ class SarsaLambdaControl:
                 mean squared error. Defaults to None.
         """
         for i in range(num_episodes):
-            print(
-                f"Training episode {i + 1}/{num_episodes} with lambda {self.lambda_val:.1f}"
-            )
+            if (i + 1) % 1000 == 0:
+                print(
+                    f"Training episode {i + 1}/{num_episodes} with lambda {self.lambda_val:.1f}"
+                )
             self.init_eleigibility_traces()
             game = Easy21()
             state, action = game.get_state(), self.get_epsilon_greedy_action(

@@ -183,7 +183,8 @@ class MCControl:
         rewards = []
         # Train the agent
         for i in range(n_episodes):
-            print(f"Training episode {i + 1}/{n_episodes}")
+            if (i + 1) % 10000 == 0:
+                print(f"Training episode {i + 1}/{n_episodes}")
             episode, cumulative_reward = self.sample_episode()
             rewards.append(cumulative_reward)
             self.update_q_values(episode)
