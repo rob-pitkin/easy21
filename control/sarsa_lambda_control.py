@@ -166,7 +166,7 @@ class SarsaLambdaControl:
                 mean squared error. Defaults to None.
         """
         for i in range(num_episodes):
-            if (i + 1) % 1000 == 0:
+            if (i + 1) % 100 == 0:
                 print(
                     f"Training episode {i + 1}/{num_episodes} with lambda {self.lambda_val:.1f}"
                 )
@@ -289,7 +289,7 @@ def main():
     Main function to train the Sarsa Lambda control agent and show MSE plots
     """
     mc_control = MCControl()
-    mc_control.train(100000)
+    mc_control.train(1000000)
     train_and_show_plots(mc_control.q_values)
 
 
