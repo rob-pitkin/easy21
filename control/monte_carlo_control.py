@@ -2,15 +2,36 @@
 # Date: 4/14/2024
 # Description: This file contains the Monte Carlo control logic for the game.
 
-from game import Easy21, GameState, Card
-from typing import Dict, List
 import random
+from typing import Dict, List, Tuple
+
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from game import Card, Easy21, GameState
 
 
 class MCControl:
+    """
+    A class to represent the Monte Carlo control agent
+
+    Attributes:
+        q_values (Dict[tuple[GameState, str], float]): The state-action value function
+        n_state (Dict[GameState, int]): The number of times a state has been visited
+        n_state_action (Dict[tuple[GameState, str], int]): The number of times a state-action
+            pair has been visited
+        n_0 (int): Epsilon constant for epsilon-greedy policy
+
+    Methods:
+        get_epsilon: Get the epsilon value for the given state
+        get_alpha: Get the alpha value for the given state-action pair
+        get_q_value: Get the Q-value for the given state-action pair
+        get_e_greedy_action: Get the best action for the given state using an epsilon-greedy policy
+        sample_episode: Sample an episode from the environment
+        update_q_values: Update the Q-values for the episode
+        train: Train the agent using Monte Carlo control
+        plot_optimal_value_function: Plot the optimal value function
+    """
+
     def __init__(self, n_0=100):
         initial_q_values = {}
         for dealer_card in range(1, 11):
@@ -94,7 +115,7 @@ class MCControl:
         """
         # Get the action with the highest Q-value
         max_q = -float("inf")
-        best_action = None
+        best_action = ""
         random_number = random.random()
         if random_number > self.get_epsilon(state):
             for action in ["hit", "stick"]:
@@ -102,11 +123,11 @@ class MCControl:
                 if q > max_q:
                     max_q = q
                     best_action = action
+            return best_action
         else:
-            best_action = random.choice(["hit", "stick"])
-        return best_action
+            return random.choice(["hit", "stick"])
 
-    def sample_episode(self) -> List[tuple[GameState, str, int]]:
+    def sample_episode(self) -> Tuple[List[Tuple[GameState, str, int]], float]:
         """
         Sample an episode from the environment
 
@@ -136,18 +157,18 @@ class MCControl:
             None
         """
         # Update the Q-values for the episode
-        G_t = 0
+        g_t = 0
         # Iterate through the episode in reverse
         for i in range(len(episode) - 1, -1, -1):
             state, action, reward = episode[i]
-            G_t += reward
+            g_t += reward
             self.n_state[state] = self.n_state[state]
             self.n_state_action[(state, action)] = (
                 self.n_state_action[(state, action)] + 1
             )
             alpha = self.get_alpha(state, action)
             q = self.get_q_value(state, action)
-            self.q_values[(state, action)] = q + alpha * (G_t - q)
+            self.q_values[(state, action)] = q + alpha * (g_t - q)
 
     def train(self, n_episodes=1000) -> None:
         """
@@ -213,6 +234,12 @@ class MCControl:
 
 
 def main():
+    """
+    Main function to train the Monte Carlo control agent
+
+    Returns:
+        None
+    """
     mc_control = MCControl()
     mc_control.train(1000000)
 
