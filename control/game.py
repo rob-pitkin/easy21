@@ -5,6 +5,7 @@
 from typing import List
 import random
 import time
+from typing import Tuple
 
 
 class Card:
@@ -157,7 +158,7 @@ class Easy21:
         # If the player's sum is equal to the dealer's sum, it's a draw
         return 0
 
-    def step(self, state: GameState, action: str) -> tuple[GameState, int]:
+    def step(self, state: GameState, action: str) -> Tuple[GameState, int]:
         """
         Take a step in the game
 
@@ -173,7 +174,7 @@ class Easy21:
         if action == "stick":
             while self.get_sum(self.dealer_cards) < 17:
                 self.dealer_cards.append(self.draw_card())
-            return (dealer_card, player_sum), self.decide_winner()
+            return GameState(dealer_card, player_sum), self.decide_winner()
         # If the player hits, the player draws a card
         elif action == "hit":
             self.player_cards.append(self.draw_card())
@@ -181,5 +182,7 @@ class Easy21:
             # If the player's sum is greater than 21, the player loses
             if player_sum > 21 or player_sum < 1:
                 self.is_finished = True
-                return (dealer_card, player_sum), -1
-            return (dealer_card, player_sum), 0
+                return GameState(dealer_card, player_sum), -1
+            return GameState(dealer_card, player_sum), 0
+        else:
+            raise ValueError("Invalid action")
