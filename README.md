@@ -16,3 +16,6 @@ Solution to #3: Sarsa(λ) in Easy21
 ![Easy21SarsaLambda0](./images/lambda0.png?raw=true "Easy21SarsaLambda0")
 ![Easy21SarsaLambda1](./images/lambda1.png?raw=true "Easy21SarsaLambda1")
 ![Easy21SarsaMseLambda](./images/mseVsLambda.png?raw=true "Easy21MseVsLambda")
+
+Extension of #3: Q-learning in Easy21
+![Easy21QLearning](./images/Qlearning.png?raw=true "Easy21QLearning")
