@@ -19,3 +19,7 @@ Solution to #3: Sarsa(λ) in Easy21
 
 Extension of #3: Q-learning in Easy21
 ![Easy21QLearning](./images/Qlearning.png?raw=true "Easy21QLearning")
+
+Solution to #4: Linear Function Approximation in Easy21
+![Easy21LinearFunctionApproximationLambda0](./images/sarsaFA0.png?raw=true "Easy21LinearFunctionApproximationLambda0")
+![Easy21LinearFunctionApproximationLambda1](./images/SarsaFA1.png?raw=true "Easy21LinearFunctionApproximationLambda1")
