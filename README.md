@@ -7,6 +7,12 @@ python control/monte_carlo_control.py
 
 # sarsa lambda control
 python control/sarsa_lambda_control.py
+
+# q learning control
+python control/q_learning_control.py
+
+# linear function approximation control
+python control/sarsa_lambda_control_fa.py
 ```
 
 Solution to #2: Monte Carlo Control in Easy21
