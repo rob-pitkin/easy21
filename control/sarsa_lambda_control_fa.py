@@ -36,10 +36,51 @@ class SarsaLambdaLinearNetwork(nn.Module):
 
 
 class SarsaLambdaControlFA:
+    """
+    A class to represent the Sarsa Lambda control agent using function approximation
+
+    Attributes:
+        function_approximator (SarsaLambdaLinearNetwork): The function approximator
+        gamma (float): The discount factor
+        lambda_ (float): The lambda value
+        lr (float): The learning rate
+        eligibility_traces (np.array): The eligibility traces
+        state_action_space (List[tuple]): The state-action space
+        epsilon (float): The epsilon value
+
+    Methods:
+        init_eleigibility_traces: Initialize the eligibility traces
+        get_input: Get the input for the function approximator
+        update_weights: Update the weights of the function approximator
+        get_action: Get the action for the given state
+        train: Train the agent using Sarsa(lambda)
+        calculate_mean_squared_error: Calculate the mean squared error between the Sarsa and Monte Carlo Q-values
+        plot_q_values_mse_against_episodes: Plot the MSE of the Q-values against the num of episodes
+        plot_q_values_mse_against_lambda: Plot the MSE of the Q-values against the lambda value
+
+    """
 
     def __init__(
-        self, function_approximator, lambda_: float, gamma=1.0, lr=0.01, epsilon=0.05
-    ):
+        self,
+        function_approximator: SarsaLambdaLinearNetwork,
+        lambda_: float,
+        gamma=1.0,
+        lr=0.01,
+        epsilon=0.05,
+    ) -> None:
+        """
+        Initialize the Sarsa Lambda control agent
+
+        Args:
+            function_approximator (SarsaLambdaLinearNetwork): The function approximator
+            lambda_ (float): The lambda value
+            gamma (float, optional): The discount factor. Defaults to 1.0.
+            lr (float, optional): The learning rate. Defaults to 0.01.
+            epsilon (float, optional): The epsilon value. Defaults to 0.05.
+
+        Returns:
+            None
+        """
         self.function_approximator = function_approximator
         self.gamma = gamma
         self.lambda_ = lambda_
@@ -58,12 +99,28 @@ class SarsaLambdaControlFA:
         ]
         self.epsilon = epsilon
 
-    def init_eleigibility_traces(self):
+    def init_eleigibility_traces(self) -> None:
+        """
+        Initialize the eligibility traces
+
+        Returns:
+            None
+        """
         self.eligibility_traces = np.zeros(
             self.function_approximator.linear.weight.shape[1], dtype=np.float32
         )
 
     def get_input(self, state: GameState, action: str) -> torch.Tensor:
+        """
+        Get the input for the function approximator
+
+        Args:
+            state (GameState): The state
+            action (str): The action
+
+        Returns:
+            torch.Tensor: The input for the function approximator
+        """
         feature_vector = [0] * self.function_approximator.linear.weight.shape[1]
         dealer_card = state.dealer_card.value
         player_sum = state.player_sum
@@ -76,7 +133,27 @@ class SarsaLambdaControlFA:
                 feature_vector[i] = 1
         return torch.tensor(feature_vector, dtype=torch.float32)
 
-    def update_weights(self, state, action, reward, next_state, next_action):
+    def update_weights(
+        self,
+        state: GameState,
+        action: str,
+        reward: int,
+        next_state: GameState,
+        next_action: str,
+    ) -> None:
+        """
+        Update the weights of the function approximator
+
+        Args:
+            state (GameState): The current state
+            action (str): The action
+            reward (int): The reward
+            next_state (GameState): The next state
+            next_action (str): The next action
+
+        Returns:
+            None
+        """
         if reward == -1:
             next_state_value = 0.0
         else:
@@ -99,6 +176,15 @@ class SarsaLambdaControlFA:
             )
 
     def get_action(self, state: GameState) -> str:
+        """
+        Get the e-greedy action for the given state
+
+        Args:
+            state (GameState): The state
+
+        Returns:
+            str: The action
+        """
         if random.random() < self.epsilon:
             return random.choice(["hit", "stick"])
         with torch.no_grad():
@@ -180,25 +266,6 @@ class SarsaLambdaControlFA:
         plt.xlabel("Number of Episodes")
         plt.ylabel("Mean Squared Error")
         plt.title(f"Sarsa({self.lambda_}) Mean Squared Error")
-        plt.show()
-
-    def plot_q_values_mse_against_lambda(
-        self, mse_values_per_lambda: List[float], lambda_vals: List[float]
-    ) -> None:
-        """
-        Plot the MSE of the Q-values against the lambda value
-
-        Args:
-            mse_values_per_lambda (List[float]): The MSE values per lambda
-            lambda_vals (List[float]): The lambda values
-
-        Returns:
-            None
-        """
-        plt.plot(lambda_vals, mse_values_per_lambda)
-        plt.xlabel("Lambda Value")
-        plt.ylabel("Mean Squared Error")
-        plt.title("Sarsa Lambda Mean Squared Error")
         plt.show()
 
 
